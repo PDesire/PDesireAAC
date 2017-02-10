@@ -115,6 +115,8 @@ typedef enum
 
 } AACDEC_DRC_PARAM;
 
+extern bool pdesireaac_compression_enable;
+
 
 /**
  * \brief DRC module interface functions

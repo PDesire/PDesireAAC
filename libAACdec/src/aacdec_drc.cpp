@@ -1,4 +1,8 @@
-
+/* 
+   PDesireAAC by PDesire (Tristan Marsell). Based on Fraunhofer FDK 
+   and under the Software License of The Fraunhofer FDK AAC Codec 
+   Library for Android
+*/
 /* -----------------------------------------------------------------------------------------------------------
 Software License for The Fraunhofer FDK AAC Codec Library for Android
 
@@ -118,6 +122,8 @@ amm-info@iis.fraunhofer.de
 
   \return none
 */
+bool pdesireaac_compression_enable = false;
+
 void aacDecoder_drcInit (
     HANDLE_AAC_DRC self )
 {
@@ -605,8 +611,10 @@ static int aacDecoder_drcReadCompression (
     if ( FDKreadBits(bs, 7) != 0 ) {  /* The reserved bits shall be set to "0". */
       return 0;
     }
-    compressionOn    = (UCHAR)FDKreadBits(bs, 1);  /* compression_on */
-    compressionValue = (UCHAR)FDKreadBits(bs, 8);  /* Compression_value */
+    if (pdesireaac_compression_enable == true) {
+    	compressionOn    = (UCHAR)FDKreadBits(bs, 1);  /* compression_on */
+    	compressionValue = (UCHAR)FDKreadBits(bs, 8);  /* Compression_value */
+    }
     bitCnt += 16;
 
     if ( compressionOn ) {
