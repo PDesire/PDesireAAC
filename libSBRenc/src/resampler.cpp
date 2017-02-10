@@ -91,6 +91,8 @@ amm-info@iis.fraunhofer.de
 
 #include "genericStds.h"
 
+static bool pdesireaac_lowpass_enable = false;
+
 
 /**************************************************************************/
 /*                   BIQUAD Filter Specifications                         */
@@ -307,36 +309,38 @@ INT FDKaacEnc_InitDownsampler(DOWNSAMPLER *DownSampler, /*!< pointer to downsamp
                               int ratio)                /*!< downsampler ratio (only 2 supported at the momment) */
 
 {
-  UINT i;
-  const struct FILTER_PARAM *currentSet=NULL;
+  if (pdesireaac_lowpass_enable == true) {
+    UINT i;
+    const struct FILTER_PARAM *currentSet=NULL;
 
-  FDK_ASSERT(ratio == 2);
-  FDKmemclear(DownSampler->downFilter.states, sizeof(DownSampler->downFilter.states));
-  DownSampler->downFilter.ptr   =   0;
+    FDK_ASSERT(ratio == 2);
+    FDKmemclear(DownSampler->downFilter.states, sizeof(DownSampler->downFilter.states));
+    DownSampler->downFilter.ptr   =   0;
 
-  /*
-    find applicable parameter set
-  */
-  currentSet = filter_paramSet[0];
-  for(i=1;i<sizeof(filter_paramSet)/sizeof(struct FILTER_PARAM *);i++){
-    if (filter_paramSet[i]->Wc <= Wc) {
-      break;
+    /*
+      find applicable parameter set
+    */
+    currentSet = filter_paramSet[0];
+    for(i=1;i<sizeof(filter_paramSet)/sizeof(struct FILTER_PARAM *);i++){
+      if (filter_paramSet[i]->Wc <= Wc) {
+        break;
+      }
+      currentSet = filter_paramSet[i];
     }
-    currentSet = filter_paramSet[i];
+
+    DownSampler->downFilter.coeffa = currentSet->coeffa;
+
+
+    DownSampler->downFilter.gain = currentSet->g;
+    FDK_ASSERT(currentSet->noCoeffs <= MAXNR_SECTIONS*2);
+
+    DownSampler->downFilter.noCoeffs = currentSet->noCoeffs;
+    DownSampler->delay = currentSet->delay;
+    DownSampler->downFilter.Wc = currentSet->Wc;
+
+    DownSampler->ratio =   ratio;
+    DownSampler->pending = ratio-1;
   }
-
-  DownSampler->downFilter.coeffa = currentSet->coeffa;
-
-
-  DownSampler->downFilter.gain = currentSet->g;
-  FDK_ASSERT(currentSet->noCoeffs <= MAXNR_SECTIONS*2);
-
-  DownSampler->downFilter.noCoeffs = currentSet->noCoeffs;
-  DownSampler->delay = currentSet->delay;
-  DownSampler->downFilter.Wc = currentSet->Wc;
-
-  DownSampler->ratio =   ratio;
-  DownSampler->pending = ratio-1;
   return(1);
 }
 
